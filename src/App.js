@@ -1,24 +1,43 @@
 import logo from './logo.svg';
 import './App.css';
+import Header from './components/layouts/Header';
+import Landing from './components/layouts/Landing';
+import Footer from './components/layouts/Footer';
+import { Routers } from './components/routers/Routers';
+import { useNavigate } from 'react-router-dom';
+
+// redux import statements
+import { Provider } from "react-redux";
+import store from "./redux/store";
+import { useEffect } from 'react';
+import setAuthToken from "./utils/setAuthToken";
+import { loadUser } from './redux/actions/authAction';
+
 
 function App() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    //console.log(localStorage.token);
+   if(localStorage.token) {
+    setAuthToken(localStorage.token);
+   }
+  else{
+   navigate("/")
+  }
+   store.dispatch( loadUser());
+  }, []); // we are not accessing any props. 
+
+  const appName = "UpgradeConnector";
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+    <Provider store={store}>
+     
+      <Header appName={appName}></Header>
+      <Routers></Routers>
+      <Footer appName={appName}></Footer>
+      
+    </Provider>
+    </>
   );
 }
 
