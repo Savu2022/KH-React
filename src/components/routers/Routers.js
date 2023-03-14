@@ -14,7 +14,7 @@ import PrivateRoute from "./PrivateRoute";
 import ProfileForm from '../profile-forms/ProfileForm';
 import AddExperience from '../profile-forms/AddExperience';
 import AddEducation from '../profile-forms/AddEducation';
-import Posts from '../post/Posts';
+import Posts from '../posts/Posts';
 import Post from '../comments/Post';
 import NotFound from "../layouts/NotFound";
 

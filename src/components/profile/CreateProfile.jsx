@@ -1,7 +1,17 @@
+import React, { Fragment, useState, useEffect } from "react";
+import { Link, useMatch, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
 import { connect } from "react-redux";
-import { useNavigate } from "react-router";
+import {
+  createProfile,
+  getCurrentProfile,
+} from "../../redux/actions/profileAction";
+
+/*
+  NOTE: declare initialState outside of component
+  so that it doesn't trigger a useEffect
+  we can then safely use this to construct our profileData
+ */
 const initialState = {
   company: "",
   website: "",
@@ -16,69 +26,67 @@ const initialState = {
   youtube: "",
   instagram: "",
 };
-export const CreateProfile = ({ profileReducer: { profile, loading } }) => {
+
+const CreateProfile = ({
+  profile: { profile, loading },
+  createProfile,
+  getCurrentProfile,
+}) => {
   const [formData, setFormData] = useState(initialState);
-  const [displaySocialInputs, setDisplaySocialInputs] = useState(false);
+
+  const creatingProfile = useMatch("/create-profile");
+
+  const [displaySocialInputs, toggleSocialInputs] = useState(false);
 
   const navigate = useNavigate();
-  const socialInput = (
-    <>
-      <div className="form-group social-input">
-        <i className="fab fa-twitter fa-2x" />
-        <input
-          type="text"
-          placeholder="Twitter URL"
-          name="twitter"
-          value={twitter}
-          onChange={onChange}
-        />
-      </div>
 
-      <div className="form-group social-input">
-        <i className="fab fa-facebook fa-2x" />
-        <input
-          type="text"
-          placeholder="Facebook URL"
-          name="facebook"
-          value={facebook}
-          onChange={onChange}
-        />
-      </div>
+  useEffect(() => {
+    // if there is no profile, attempt to fetch one
+    if (!profile) getCurrentProfile();
 
-      <div className="form-group social-input">
-        <i className="fab fa-youtube fa-2x" />
-        <input
-          type="text"
-          placeholder="YouTube URL"
-          name="youtube"
-          value={youtube}
-          onChange={onChange}
-        />
-      </div>
+    // if we finished loading and we do have a profile
+    // then build our profileData
+    if (!loading && profile) {
+      const profileData = { ...initialState };
+      for (const key in profile) {
+        if (key in profileData) profileData[key] = profile[key];
+      }
+      for (const key in profile.social) {
+        if (key in profileData) profileData[key] = profile.social[key];
+      }
+      // the skills may be an array from our API response
+      if (Array.isArray(profileData.skills))
+        profileData.skills = profileData.skills.join(", ");
+      // set local state with the profileData
+      setFormData(profileData);
+    }
+  }, [loading, getCurrentProfile, profile]);
 
-      <div className="form-group social-input">
-        <i className="fab fa-linkedin fa-2x" />
-        <input
-          type="text"
-          placeholder="Linkedin URL"
-          name="linkedin"
-          value={linkedin}
-          onChange={onChange}
-        />
-      </div>
+  const {
+    company,
+    website,
+    location,
+    status,
+    skills,
+    githubusername,
+    bio,
+    twitter,
+    facebook,
+    linkedin,
+    youtube,
+    instagram,
+  } = formData;
 
-      <div className="form-group social-input">
-        <i className="fab fa-instagram fa-2x" />
-        <input
-          type="text"
-          placeholder="Instagram URL"
-          name="instagram"
-          value={instagram}
-          onChange={onChange}
-        />
-      </div>
-    </>
-  );
+  const onChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    createProfile(formData, profile ? true : false).then(() =>
+      navigate("/dashboard")
+    );
+  };
+
   return (
     <section className="container">
       <h1 className="large text-primary">
@@ -190,7 +198,64 @@ export const CreateProfile = ({ profileReducer: { profile, loading } }) => {
           <span>Optional</span>
         </div>
 
-        {displaySocialInputs && socialInput}
+        {displaySocialInputs && (
+          <Fragment>
+            <div className="form-group social-input">
+              <i className="fab fa-twitter fa-2x" />
+              <input
+                type="text"
+                placeholder="Twitter URL"
+                name="twitter"
+                value={twitter}
+                onChange={onChange}
+              />
+            </div>
+
+            <div className="form-group social-input">
+              <i className="fab fa-facebook fa-2x" />
+              <input
+                type="text"
+                placeholder="Facebook URL"
+                name="facebook"
+                value={facebook}
+                onChange={onChange}
+              />
+            </div>
+
+            <div className="form-group social-input">
+              <i className="fab fa-youtube fa-2x" />
+              <input
+                type="text"
+                placeholder="YouTube URL"
+                name="youtube"
+                value={youtube}
+                onChange={onChange}
+              />
+            </div>
+
+            <div className="form-group social-input">
+              <i className="fab fa-linkedin fa-2x" />
+              <input
+                type="text"
+                placeholder="Linkedin URL"
+                name="linkedin"
+                value={linkedin}
+                onChange={onChange}
+              />
+            </div>
+
+            <div className="form-group social-input">
+              <i className="fab fa-instagram fa-2x" />
+              <input
+                type="text"
+                placeholder="Instagram URL"
+                name="instagram"
+                value={instagram}
+                onChange={onChange}
+              />
+            </div>
+          </Fragment>
+        )}
 
         <input type="submit" className="btn btn-primary my-1" />
         <Link className="btn btn-light my-1" to="/dashboard">
@@ -202,11 +267,13 @@ export const CreateProfile = ({ profileReducer: { profile, loading } }) => {
 };
 
 CreateProfile.propTypes = {
-  profileReducer: PropTypes.object.isRequired,
+  createProfile: PropTypes.func.isRequired,
+  getCurrentProfile: PropTypes.func.isRequired,
+  profile: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = (state) => ({});
-
-const mapDispatchToProps = {};
-
+const mapStateToProps = (state) => ({
+  profile: state.profileReducer,
+});
+const mapDispatchToProps = { createProfile, getCurrentProfile };
 export default connect(mapStateToProps, mapDispatchToProps)(CreateProfile);
