@@ -29,8 +29,8 @@ export default class Register extends Component {
         console.error(JSON.stringify(err.response.data.errors));
         err.response.data.errors.forEach((element) => {
           console.log({ msg: element.msg, field: element.param });
-          if (element.param == "email") errorObj.email = element.msg;
-          if (element.param == "password") errorObj.password = element.msg;
+          if (element.param === "email") errorObj.email = element.msg;
+          if (element.param === "password") errorObj.password = element.msg;
         });
         this.setState({ errors: errorObj });
       });
